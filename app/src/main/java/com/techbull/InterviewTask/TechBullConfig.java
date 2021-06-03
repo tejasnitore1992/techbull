@@ -11,6 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class TechBullConfig {
 
+    public static final String APIKEY = "af16ecf0";
     private static Retrofit retrofit = null;
     public static Retrofit getClient(Context context) {
 

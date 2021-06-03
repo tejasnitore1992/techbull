@@ -3,14 +3,12 @@ package com.techbull.InterviewTask;
 import com.google.gson.JsonElement;
 
 import retrofit2.Call;
-import retrofit2.http.POST;
-import retrofit2.http.Path;
+import retrofit2.http.GET;
+import retrofit2.http.Query;
 
 public interface TechBullApi {
 
-    @POST("apikey.aspx")
-    Call<JsonElement> getApiKey();
 
-    @POST("?s={searchText}&apikey={apikey}")
-    Call<JsonElement> searchMovieShowName(@Path("searchText") String searchText, @Path("apikey") String apikey);
+    @GET(".")
+    Call<JsonElement> searchMovieShowName(@Query("s") String searchText, @Query("apikey") String apikey, @Query("page") String pageNo);
 }

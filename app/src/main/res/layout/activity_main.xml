@@ -19,14 +19,18 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary">
 
+            <AutoCompleteTextView
+                android:id="@+id/search_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Search Movie/show name"
+                android:textColorHint="@color/white"
+                android:textColor="@color/white"
+                android:drawableStart="@drawable/ic_baseline_search_24"/>
+
         </androidx.appcompat.widget.Toolbar>
 
-        <AutoCompleteTextView
-            android:id="@+id/search_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Search Movie/show name"
-            android:textColorHint="@color/black"/>
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"

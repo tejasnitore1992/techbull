@@ -4,10 +4,13 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
 
 import java.util.List;
 
@@ -46,7 +49,11 @@ public class SearchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         SearchDto searchDto = searchDtoList.get(position);
         if (holder instanceof MyViewHolder) {
             MyViewHolder myViewHolder = (MyViewHolder) holder;
-            myViewHolder.tvMovieName.setText("");
+            Glide.with(context)
+                    .load(searchDto.getPoster())
+                    .error(R.drawable.ic_baseline_broken_image)
+                    .into(myViewHolder.imageView);
+            myViewHolder.tvMovieName.setText(searchDto.getTitle()+" ("+searchDto.getYear()+")");
         }else{
 
         }
@@ -59,11 +66,13 @@ public class SearchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     public class MyViewHolder extends RecyclerView.ViewHolder{
 
+        ImageView imageView;
         TextView tvMovieName;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
             tvMovieName = itemView.findViewById(R.id.tv_movie_name);
+            imageView = itemView.findViewById(R.id.image_view);
         }
     }
 

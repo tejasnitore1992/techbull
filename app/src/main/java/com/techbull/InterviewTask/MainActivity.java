@@ -4,21 +4,29 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.view.Gravity;
 import android.widget.AutoCompleteTextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.multidex.MultiDex;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,15 +44,14 @@ public class MainActivity extends AppCompatActivity {
     private SearchAdapter searchAdapter;
     private List<SearchDto> searchDtoList = new ArrayList<>();
     private ProgressDialog progressDialog;
-    private Boolean isLoading = false;
-    private Boolean isVisibleProgressbar = false;
-    private int searchDtoListCount = 0;
+    private int pageNo = 1;
+    private String searchTextStr = "batman";
+    private boolean isPageLoading = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        MultiDex.install(this);
         context = MainActivity.this;
         initView();
         progressDialog = new ProgressDialog(context);
@@ -52,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
         progressDialog.setCancelable(false);
         init();
     }
-
     private void init(){
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
         searchAdapter = new SearchAdapter(context,searchDtoList);
@@ -62,27 +68,73 @@ public class MainActivity extends AppCompatActivity {
             public void onScrolled(@NonNull  RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
                 LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-                if (!isLoading) {
+
                     if (linearLayoutManager != null && linearLayoutManager.findLastCompletelyVisibleItemPosition() == searchDtoList.size() - 1) {
-                        //bottom of list!
-                        isLoading = true;
-//                        loadData();
+                        pageNo = pageNo + 1;
+                        isPageLoading = true;
+                        getMovieList();
 
                     }
-                }
+
             }
         });
-        getApiKey();
+        searchText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(TextUtils.isEmpty(s.toString())) {
+                    searchTextStr = "batman";
+                }else {
+                    searchTextStr = s.toString();
+                }
+                pageNo = 1;
+                isPageLoading = false;
+                getMovieList();
+                recyclerView.scrollToPosition(0);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+        getMovieList();
     }
 
-    private void getApiKey() {
-        progressDialog.setTitle("ApiKey");
+
+    private void getMovieList() {
+        progressDialog.setTitle("Movie Title");
         progressDialog.setMessage("Loading...");
         TechBullApi api = TechBullConfig.getClient(context).create(TechBullApi.class);
-        Call<JsonElement> call = api.getApiKey();
+        Call<JsonElement> call = api.searchMovieShowName(searchTextStr,TechBullConfig.APIKEY,""+pageNo);
         call.enqueue(new Callback<JsonElement>() {
             @Override
             public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
+                JsonObject jsonObject = response.body().getAsJsonObject();
+                if(jsonObject.has("Search")){
+                    JsonArray jsonArray = jsonObject.getAsJsonArray("Search");
+                    Gson gson = new Gson();
+                    Type type = new TypeToken<List<SearchDto>>(){}.getType();
+                    List<SearchDto> temList = gson.fromJson(jsonArray,type);
+
+                    if(!isPageLoading){
+                        searchDtoList.clear();
+                    }
+                    if(temList != null){
+                        searchDtoList.addAll(temList);
+                    }
+                    if(searchAdapter != null)
+                        searchAdapter.notifyDataSetChanged();
+                    if(temList.isEmpty()){
+                        Toast toast = Toast.makeText(context,"Complete list load",Toast.LENGTH_LONG);
+                        toast.setGravity(Gravity.CENTER,0,0);
+                        toast.show();
+                    }
+                }
                 progressDialog.dismiss();
             }
 
